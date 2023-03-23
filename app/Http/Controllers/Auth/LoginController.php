@@ -12,16 +12,19 @@ class LoginController extends Controller
 {
     public function login(LoginRequest $request)
     {
-        $credentials = $request->validated();
+        $credentials = $request->only('email', 'password');
 
-        if (!Auth::attempt($credentials)) {
+        if (!Auth::guard('web')->attempt(
+            $credentials,
+            $request->remember_me
+        )) {
             return response()->json([
                 'status' => 0,
                 'message' => 'Credenciales incorrectas'
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('api')->user();
         $token = $user->createToken('token')->plainTextToken;
 
         return response()->json([
